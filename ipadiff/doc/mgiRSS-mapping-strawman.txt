@@ -1,0 +1,81 @@
+******************
+format:
+report col # with new info     -->     value for update property of update tag      -->     text for update tag
+******************
+
+iphone-genes mappings:
+
+1 (appears in current file but not old)  -->  newNomenAssn    -->  Nomenclature change - [gene symbol] ([gene name]) assigned to [MGI:xxx]
+1 (appears in old file but not current)  -->  newNomenDelete  -->  Nomenclature change - [gene symbol] ([gene name]) has been deleted [MGI:xxx]
+3,4 -->  newNomenRename   -->  Nomenclature change - [old gene symbol/name] renamed to [current gene symbol/name] [MGI:xxx]
+9   -->  newRef           -->  [gene symbol] now associated with reference [short_citation from MGD]
+12  -->  newAllele        -->  [gene symbol] now associated with allele [ALLELE] // for the allele name, please use angle brackets in place of superscript
+15  -->  newGOtermC       -->  [gene symbol] now associated with Cellular Component Gene Ontology (GO) term "[GO term]"
+18  -->  newGOtermF       -->  [gene symbol] now associated with Molecular Function Gene Ontology (GO) term "[GO term]"
+21  -->  newGOtermP       -->  [gene symbol] now associated with Biological Process Gene Ontology (GO) term "[GO term]"
+24  -->  newMPterm        -->  [gene symbol] now associated with Mammalian Phenotype (MP) term "[MP term]"
+27  -->  newOMIMtermGeno  -->  [gene symbol] now associated with OMIM disease term "[OMIM term]"
+
+
+iphone-mp mappings:
+
+5   -->  newRef       -->  [MP term] now associated with reference [short_citation from MGD]
+8   -->  newGenotype  -->  [MP term] now associated with genotype involving [gene symbol1(, gene symbol2, gene symbol3,…)]
+11  -->  newGene      -->  [MP term] now associated with gene [gene symbol]
+14  -->  newAllele    -->  [MP term] now associated with allele [ALLELE] // for the allele name, please use angle brackets in place of superscript
+
+
+iphone-omim mappings:
+
+5, 17   -->  newRef       -->  [OMIM term] now associated with reference [short_citation from MGD]
+8       -->  newGenotype  -->  [OMIM term] now associated with genotype involving [gene symbol1(, gene symbol2, gene symbol3,…)]
+11, 20  -->  newGene      -->  [OMIM term] now associated with gene [gene symbol]
+14      -->  newAllele    -->  [OMIM term] now associated with allele [ALLELE] // for the allele name, please use angle brackets in place of superscript
+
+
+
+****************************************
+**  columnar data listing for weekly  **
+**  iphone app reports (trimmed)      **
+****************************************
+
+# iphone-genes
+#
+#       Markers of all types
+#       Markers of status official or interum (_marker_status_key in (1,3)
+#
+#       1:  MGI Marker ID
+#       2:  Marker key
+#       3:  Symbol
+#       4:  Name
+#       9:  MGI Ref ID (MGI:xxx|MGI:xxx|...)
+#       12: MGI Allele ID (MGI:xxx|MGI:xxx|...)
+#       15: GO ID (C group): (GO:xxxx|GO:xxxx|GO:xxxx...)
+#       18: GO ID (F group): (GO:xxxx|GO:xxxx|GO:xxxx...)
+#       21: GO ID (P group): (GO:xxxx|GO:xxxx|GO:xxxx...)
+#       24: MP ID: (MP:xxxx|MP:xxxx|MP:xxxx...)
+#       27: OMIM ID: (xxxx|xxxx|xxxx|...)
+#       30: OMIM ID: (xxxx|xxxx|xxxx|...)
+#
+# iphone-mp
+#
+#       MP annotations
+#
+#       1: MP ID
+#       2: MP Term
+#       3: MP Definition
+#       5: MGI Ref ID (MGI:xxx|MGI:xxx|MGI:xxx|...)
+#       8: MGI Genotype ID (MGI:xxx|MGI:xxx|...)
+#       11: MGI Marker ID (MGI:xxx|MGI:xxx|...)
+#       14: MGI Allele ID (MGI:xxx|MGI:xxx|...)
+#
+# iphone-omim
+#
+#       1: OMIM ID
+#       2: OMIM Definition
+#       5: MGI Ref ID (MGI:xxx|MGI:xxx|MGI:xxx|...) //for (_annottype_key = 1005)
+#       8: MGI Genotype ID (MGI:xxx|MGI:xxx|...)
+#       11: MGI Marker ID (MGI:xxx|MGI:xxx|...)
+#       14: MGI Allele ID (MGI:xxx|MGI:xxx|...)
+#       17: MGI Ref ID (MGI:xxx|MGI:xxx|MGI:xxx|...) //for (_annottype_key = 1006)
+#       20: Human EntrezGene ID (xxx|xxx|...)

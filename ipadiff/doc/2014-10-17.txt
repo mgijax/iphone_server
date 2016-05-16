@@ -1,0 +1,24 @@
+Hi Joel,
+
+A couple things:
+
+1.  For each of the 3 reports (genes, mp, omim), everything in the header between <channel> and the first instance of <!-- --> can be removed; the iPhone app does not read the file as straight xml anymore, so the header is not needed.
+
+2.  Can we cat the three files together at the end to make one big file of updates called mgiRSS.xml?  All of the <item> data would be enclosed by one set of <rss version="2.0"><channel></channel></rss> tags.  It would save me from having to revamp my getUpdates.php script.
+
+3.  In the <label> tag, can we change the order of info to <symbol><[MGI ID]> instead of the other way around?
+
+4.  In the <update> tags, can we remove the MGI ID from the beginning of the update?
+
+Many thanks,
+Jill
+
+-- 
+Jill M. Recla, Ph.D.
+Bioinformatics Analyst
+Mouse Genome Informatics
+The Jackson Laboratory
+600 Main Street
+Bar Harbor, Maine 04609
+(tel) 207-288-6000 x 6408
+(email) jill.recla@jax.org
