@@ -1,3 +1,5 @@
+LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:/usr/local/pgsql/lib
+export LD_LIBRARY_PATH
 PYTHON=/usr/local/bin/python
 MV=mv
 #
