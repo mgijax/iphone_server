@@ -78,8 +78,9 @@ foreach ($aDOMTags as $aDOM) {
 					if ($pos === false) {
 						// we did not find a phenotype URL
 						// let's check to see if it's a disease URL
-						//$substr = "?page=humanDisease&key=";
-						$substr = "/disease/key/";
+						// $substr = "?page=humanDisease&key=";
+						// $substr = "/disease/key/";
+						$substr = "/disease/DOID:";
 						$pos = strpos($href,$substr);
 						if ($pos === false) {
 							// we did not find a disease URL
@@ -91,7 +92,8 @@ foreach ($aDOMTags as $aDOM) {
 							// and the element name inside the next <td> tag
 							// and pull the element key out of the URL
 							// and pull the "feature type" out of the preceding <span> element (should always be "Disease")
-							preg_match('/\/key\/(\d+)/', $href, $matches);
+							// preg_match('/\/key\/(\d+)/', $href, $matches);
+							preg_match('/\/DOID:(\d+)/', $href, $matches);
 		                                        $key = $matches[1];
 							$term = (trim($aDOM->nodeValue));
                 		                        $nextSib = $parent->nextSibling;
@@ -99,30 +101,31 @@ foreach ($aDOMTags as $aDOM) {
                 		                        $prevSib = $aDOM->previousSibling;
                                 		        $prevSib = $prevSib->previousSibling;
 		                                        $feature_type = (trim($prevSib->nodeValue));
+							$mgiID = "DOID:" . $key;
 							
 							// get the MGI ID for this disease
-							$pageHtml = file_get_contents($href);
+						//	$pageHtml = file_get_contents($href);
 			
 							// create a new dom object
-							$pageDom = new domDocument;
+						//	$pageDom = new domDocument;
 
 							// load the html into the object
 							// (the @ symbol represses parse warnings from any badly formatted html that we are reading in)
-							@$pageDom->loadHTML($pageHtml);
+						//	@$pageDom->loadHTML($pageHtml);
 
 							// discard white space
-							$pageDom->preserveWhiteSpace = false;
+						//	$pageDom->preserveWhiteSpace = false;
 
 							// store the dom object in a new DOMXPath object to make the parsing easier
 							// (ex: we only want some of the <table> elements, not all of them, etc.)
-							$pageXpath = new DOMXPath($pageDom);
+						//	$pageXpath = new DOMXPath($pageDom);
 
-							$mgiDOMTags = $pageXpath->query("//table[@class='detailStructureTable']/tr/td[@class='detailData1']/a");
-						        foreach ($mgiDOMTags as $mgiDOM) {
-						                global $mgiID;
-						                $mgi_href = $mgiDOM->getAttribute('href');
-						                if (preg_match('/www.omim.org\/entry\/(\d+)/', $mgi_href, $matches)) { $mgiID = $matches[1]; }
-						        } // end of foreach loop
+						//	$mgiDOMTags = $pageXpath->query("//table[@class='detailStructureTable']/tr/td[@class='detailData1']/a");
+						//        foreach ($mgiDOMTags as $mgiDOM) {
+						//               global $mgiID;
+						//               $mgi_href = $mgiDOM->getAttribute('href');
+						//               if (preg_match('/www.omim.org\/entry\/(\d+)/', $mgi_href, $matches)) { $mgiID = $matches[1]; }
+						//        } // end of foreach loop
 
 							// add the sub-array of results to the big resultsArray
                 		                        $results = array("mgi" => $mgiID, "url" => $href, "type" => "Disease", "symbol" => "", "term" => $term, "supTxt" => "", "name" => "", "key" => $key, "feature_type" => $feature_type);
