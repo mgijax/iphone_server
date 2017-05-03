@@ -73,7 +73,8 @@ foreach ($aDOMTags as $aDOM) {
         	                if ($pos === false) {
 					// we did not find a genome feature URL
 					// let's check to see if it's a phenotype URL
-					$substr = ".cgi?id=MP:";
+				//	$substr = ".cgi?id=MP:";
+					$substr = "/vocab/mp_ontology/MP:";
 					$pos = strpos($href,$substr);
 					if ($pos === false) {
 						// we did not find a phenotype URL
@@ -137,7 +138,7 @@ foreach ($aDOMTags as $aDOM) {
 						// also save the element symbol inside the <a> tag
 						// save the element name inside the next <td> tag
 						// and pull the element key out of the URL
-                                                preg_match('/\?id=MP:(\d+)/', $href, $matches);
+                                                preg_match('/\/vocab/mp_ontology/MP:(\d+)/', $href, $matches);
                                                 $key = $matches[1];
 						$term = (trim($aDOM->nodeValue));
         	                                $nextSib = $parent->nextSibling;
@@ -146,7 +147,7 @@ foreach ($aDOMTags as $aDOM) {
 						$prevSib = $prevSib->previousSibling;
 	                                        $feature_type = (trim($prevSib->nodeValue));
 						$mgiID = "MP:" . $key;
-
+					//	$mgiID = "ahoy";
 						// add the sub-array of results to the big resultsArray
                                 	        $results = array("mgi" => $mgiID, "url" => $href, "type" => "Phenotype", "symbol" => "", "term" => $term, "supTxt" => "", "name" => "", "key" => $key, "feature_type" => $feature_type);
 						array_push($phenoResultsArray, $results);
