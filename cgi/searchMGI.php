@@ -94,15 +94,16 @@ foreach ($aDOMTags as $aDOM) {
 							// and pull the element key out of the URL
 							// and pull the "feature type" out of the preceding <span> element (should always be "Disease")
 							// preg_match('/\/key\/(\d+)/', $href, $matches);
-							preg_match('/\/DOID:(\d+)/', $href, $matches);
-		                                        $key = $matches[1];
-							$term = (trim($aDOM->nodeValue));
+							$disease_href = $href;
+							preg_match("/\/DOID:(\d+)/", $disease_href, $disease_matches);
+		                                        $disease_key = $disease_matches[1];
+							$disease_term = (trim($aDOM->nodeValue));
                 		                        $nextSib = $parent->nextSibling;
                                 		        $nextSib = $nextSib->nextSibling;
                 		                        $prevSib = $aDOM->previousSibling;
                                 		        $prevSib = $prevSib->previousSibling;
-		                                        $feature_type = (trim($prevSib->nodeValue));
-							$mgiID = "DOID:" . $key;
+		                                        $disease_feature_type = (trim($prevSib->nodeValue));
+							$disease_mgiID = "DOID:" . $disease_key;
 							
 							// get the MGI ID for this disease
 						//	$pageHtml = file_get_contents($href);
@@ -129,8 +130,8 @@ foreach ($aDOMTags as $aDOM) {
 						//        } // end of foreach loop
 
 							// add the sub-array of results to the big resultsArray
-                		                        $results = array("mgi" => $mgiID, "url" => $href, "type" => "Disease", "symbol" => "", "term" => $term, "supTxt" => "", "name" => "", "key" => $key, "feature_type" => $feature_type);
-							array_push($diseaseResultsArray, $results);
+                		                        $disease_results = array("mgi" => $disease_mgiID, "url" => $disease_href, "type" => "Disease", "symbol" => "", "term" => $disease_term, "supTxt" => "", "name" => "", "key" => $disease_key, "feature_type" => $disease_feature_type);
+							array_push($diseaseResultsArray, $disease_results);
 						} // end of else
 					} // end of if
 					else {
@@ -138,19 +139,26 @@ foreach ($aDOMTags as $aDOM) {
 						// also save the element symbol inside the <a> tag
 						// save the element name inside the next <td> tag
 						// and pull the element key out of the URL
-                                                preg_match('/\/vocab/mp_ontology/MP:(\d+)/', $href, $matches);
-                                                $key = $matches[1];
-						$term = (trim($aDOM->nodeValue));
+						$pheno_href = $href;
+                                        //      preg_match('/\/vocab/mp_ontology/MP:(\d+)/', $pheno_href, $pheno_matches);
+					//	preg_match('/vocab/mp_ontology/(.*)/', $pheno_href, $pheno_matches);
+					//	preg_match('/MP:(/d+)/', $pheno_href, $pheno_matches);
+						preg_match("/vocab\/mp_ontology\/MP:(\d+)/", $pheno_href, $pheno_matches);
+					//	$substr = "/disease/key/";
+                                                $pheno_key = $pheno_matches[1];
+					//	$pheno_key = "ahoy";
+					//	$pheno_substr = "/disease/key/";
+						$pheno_term = (trim($aDOM->nodeValue));
         	                                $nextSib = $parent->nextSibling;
                 	                        $nextSib = $nextSib->nextSibling;
               		                        $prevSib = $aDOM->previousSibling;
 						$prevSib = $prevSib->previousSibling;
-	                                        $feature_type = (trim($prevSib->nodeValue));
-						$mgiID = "MP:" . $key;
+	                                        $pheno_feature_type = (trim($prevSib->nodeValue));
+						$pheno_mgiID = "MP:" . $pheno_key;
 					//	$mgiID = "ahoy";
 						// add the sub-array of results to the big resultsArray
-                                	        $results = array("mgi" => $mgiID, "url" => $href, "type" => "Phenotype", "symbol" => "", "term" => $term, "supTxt" => "", "name" => "", "key" => $key, "feature_type" => $feature_type);
-						array_push($phenoResultsArray, $results);
+                                	        $pheno_results = array("mgi" => $pheno_mgiID, "url" => $pheno_href, "type" => "Phenotype", "symbol" => "", "term" => $pheno_term, "supTxt" => "", "name" => "", "key" => $pheno_key, "feature_type" => $pheno_feature_type);
+						array_push($phenoResultsArray, $pheno_results);
 					} // end of else
 				} // end of if
 				else {
@@ -165,41 +173,42 @@ foreach ($aDOMTags as $aDOM) {
 					// get the parent's preceeding sibling
 					$prevSib = $parent->previousSibling;
 					$prevSib = $prevSib->previousSibling;
-					$feature_type = (trim($prevSib->nodeValue));
+					$gene_feature_type = (trim($prevSib->nodeValue));
 				
-					if (($feature_type == "protein coding gene")
-					 || ($feature_type == "non-coding RNA gene")
-					 || ($feature_type == "heritable phenotypic marker")
-					 || ($feature_type == "gene segment")
-					 || ($feature_type == "unclassified gene")) {
+					if (($gene_feature_type == "protein coding gene")
+					 || ($gene_feature_type == "non-coding RNA gene")
+					 || ($gene_feature_type == "heritable phenotypic marker")
+					 || ($gene_feature_type == "gene segment")
+					 || ($gene_feature_type == "unclassified gene")) {
 
 						// save the element symbol inside the <a> tag
 						// save the element name inside the next <td> tag
 						// and pull the element key out of the URL
 						// and pull the MGI ID from the detail page
-                                	        preg_match('/http:\/\/www.informatics.jax.org\/marker\/MGI:(\d+)/', $href, $matches);
-                                        	$key = $matches[1];
-						$symbol = (trim($aDOM->nodeValue));
-        	                                $supTxt = "";
+						$gene_href = $href;
+                                	        preg_match("/http:\/\/www.informatics.jax.org\/marker\/MGI:(\d+)/", $gene_href, $gene_matches);
+                                        	$gene_key = $gene_matches[1];
+						$gene_symbol = (trim($aDOM->nodeValue));
+        	                                $gene_supTxt = "";
 	        	                        $nextSib = $parent->nextSibling;
         	        	                $nextSib = $nextSib->nextSibling;
-                	        	        $name = (trim($nextSib->nodeValue));
-						$mgiID = "MGI:" . $key;
+                	        	        $gene_name = (trim($nextSib->nodeValue));
+						$gene_mgiID = "MGI:" . $gene_key;
 
 						// save the genomic location
                                                 $nextSib = $nextSib->nextSibling;
                                                 $nextSib = $nextSib->nextSibling;
-						$chr = (trim($nextSib->nodeValue));
+						$gene_chr = (trim($nextSib->nodeValue));
 
                                                 $nextSib = $nextSib->nextSibling;
                                                 $nextSib = $nextSib->nextSibling;
-						$coords = (trim($nextSib->nodeValue));
-						$coords = preg_replace('/\s+/', '', $coords);
+						$gene_coords = (trim($nextSib->nodeValue));
+						$gene_coords = preg_replace('/\s+/', '', $gene_coords);
 		
 		                                // add the sub-array of results to the big resultsArray
-	                        	        $results = array("mgi" => $mgiID, "url" => $href, "type" => "Gene", "symbol" => $symbol, "term" => "", "supTxt" => $supTxt, "name" => $name, "key" => $key, "feature_type" => $feature_type, "chr" =>
-$chr, "coords" => $coords);
-        		                        array_push($gfResultsArray, $results);
+	                        	        $gene_results = array("mgi" => $gene_mgiID, "url" => $gene_href, "type" => "Gene", "symbol" => $gene_symbol, "term" => "", "supTxt" => $gene_supTxt, "name" => $gene_name, "key" => $gene_key, "feature_type" => $gene_feature_type, "chr" =>
+$gene_chr, "coords" => $gene_coords);
+        		                        array_push($gfResultsArray, $gene_results);
 					} // end of if
 				} // end of else
 			} // end of if
