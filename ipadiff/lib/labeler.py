@@ -16,6 +16,7 @@ class Labeler:
     def __init__(self, cp):
         self.cp = cp
 	self.cache = {}
+	self.cxn = db.connect()
         
     def resetCache(self):
         self.cache = {}
@@ -28,7 +29,7 @@ class Labeler:
 
 	sec = 'query.'+typ
 	mgiq = self.cp.get(sec,'mgiquery', False, {'id':oid})
-	r = db.sql(mgiq,None)
+	r = db.sql(mgiq, None, connection=self.cxn)
 
 	if len(r) == 0:
 	    val = None

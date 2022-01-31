@@ -247,6 +247,7 @@ $gene_chr, "coords" => $gene_coords);
 $rtnjsonobj->gf_results = $gfResultsArray;
 $rtnjsonobj->pheno_results = $phenoResultsArray;
 $rtnjsonobj->disease_results = $diseaseResultsArray;
+$rtnjsonobj->genome_build = "GRCm39";
  
 // Wrap and write a JSON-formatted object with a function call, using the supplied value of parm 'callback' in the URL:
 echo $_GET['callback']. '('. json_encode($rtnjsonobj) . ')';   
