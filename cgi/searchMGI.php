@@ -6,253 +6,161 @@
 //header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE');
 
 // declare some variables
-$rtnjsonobj;
+$rtnjonobj;
 $searchTerm;
-$mgiID;
 $results = array();
 $gfResultsArray = array();
 $phenoResultsArray = array();
 $diseaseResultsArray = array();
-$test = "[type=";
 
 // Create a generic JSONP object and assign it the properties of the term variables sent by the iphone app
 if (isset($_GET['term'])) {
-
-	global $rtnjsonobj, $searchTerm;
-
-	$rtnjsonobj->term = $_GET['term'];
-	$searchTerm = $_GET['term'];
-	$searchTerm = preg_replace('/\\s+/', '+', trim($searchTerm));
+        
+        global $rtnjsonobj, $searchTerm;
+        
+        $rtnjsonobj->term = $_GET['term'];
+        $searchTerm = $_GET['term'];
+        $searchTerm = preg_replace('/\\s+/', '+', trim($searchTerm));
 } // end of if
 
-//$searchTerm = "cav1";
+// use this for testing
+//$searchTerm = "parkinson";
 
-// pull the html of the Quick Search results in from the URL
-$url = "http://www.informatics.jax.org/searchtool/Search.do?query=" . $searchTerm . "&submit=Quick+Search";
-$html = file_get_contents($url);
+//------------------------------------------
 
-// create a new dom object
-$dom = new domDocument;
+// hit the feature Bucket endpoint of the MGI QuickSearch to get the returned genome features
 
-// load the html into the object
-// (the @ symbol represses parse warnings from any badly formatted html that we are reading in)
-@$dom->loadHTML($html);
+// store the feature bucket endpoint URL
+$fburl = "http://www.informatics.jax.org/quicksearch/featureBucket?queryType=exactPhrase&query=" . $searchTerm. "&submit=Quick%0D%0ASearch&startIndex=0&results=10";
 
-// discard white space
-$dom->preserveWhiteSpace = false;
+// get the json results using the URL and the searchTerm
+$fbjson = file_get_contents($fburl);
 
-// store the dom object in a new DOMXPath object to make the parsing easier
-// (ex: we only want some of the <table> elements, not all of them, etc.)
-$xpath = new DOMXPath($dom);
+// decode the feature bucket json results as an associative array
+$decoded_fbjson = json_decode($fbjson, true);
 
-// find and store the urls to the result detail pages,
-// as well as their associated element symbols
-$aDOMTags = $xpath->query("//table[@class='qsBucket']/tr[@class='qsBucketRow1']/td/a | //table[@class='qsBucket']/tr[@class='qsBucketRow2']/td/a");
-foreach ($aDOMTags as $aDOM) {
-	global $mgiID, $results, $gfResultsArray, $phenoResultsArray, $diseaseResultsArray;
-	$results = array(); // use the global array variable, but reset it
+// save the feature bucket results as rows
+$fbsummaryRows = $decoded_fbjson['summaryRows'];
 
-	// only proceed if the <td> tag we're inside has an empty class value
-	$parent = $aDOM->parentNode;
-	$tdClass = "";
-	$tdClass = $parent->getAttribute('class');
-	if (empty($tdClass)) {
-		$href = $aDOM->getAttribute('href');
-		$class = ""; // reset the class variable to be an empty string so we can see if it's empty in the if statement
-		$class = $aDOM->getAttribute('class');
-		if (empty($class)) {
-			// make sure the URL is only what we want (no GO links, etc)
-			$substr = "?page=alleleDetail&key=";
-			$pos = strpos($href,$substr);
-			if ($pos === false) {
-				// we did not find a genome feature URL that belongs to an allele
-				// let's check to see if it's a genome feature that belongs to a marker
-				// $substr = "?page=markerDetail&key=";
-				$substr = "http://www.informatics.jax.org/marker/MGI:";
-	                        $pos = strpos($href,$substr);
-        	                if ($pos === false) {
-					// we did not find a genome feature URL
-					// let's check to see if it's a phenotype URL
-				//	$substr = ".cgi?id=MP:";
-					$substr = "/vocab/mp_ontology/MP:";
-					$pos = strpos($href,$substr);
-					if ($pos === false) {
-						// we did not find a phenotype URL
-						// let's check to see if it's a disease URL
-						// $substr = "?page=humanDisease&key=";
-						// $substr = "/disease/key/";
-						$substr = "/disease/DOID:";
-						$pos = strpos($href,$substr);
-						if ($pos === false) {
-							// we did not find a disease URL
-							// we do not need this URL
-						} // end of if
-						else {
-							// we found a disease URL, so save it
-							// also save the element symbol inside the <a> tag
-							// and the element name inside the next <td> tag
-							// and pull the element key out of the URL
-							// and pull the "feature type" out of the preceding <span> element (should always be "Disease")
-							// preg_match('/\/key\/(\d+)/', $href, $matches);
-							$disease_href = $href;
-							preg_match("/\/DOID:(\d+)/", $disease_href, $disease_matches);
-		                                        $disease_key = $disease_matches[1];
-							$disease_term = (trim($aDOM->nodeValue));
-                		                        $nextSib = $parent->nextSibling;
-                                		        $nextSib = $nextSib->nextSibling;
-                		                        $prevSib = $aDOM->previousSibling;
-                                		        $prevSib = $prevSib->previousSibling;
-		                                        $disease_feature_type = (trim($prevSib->nodeValue));
-							$disease_mgiID = "DOID:" . $disease_key;
-							
-							// get the MGI ID for this disease
-						//	$pageHtml = file_get_contents($href);
-			
-							// create a new dom object
-						//	$pageDom = new domDocument;
+// for each row of feature bucket results...
+foreach($fbsummaryRows as $fbrow) {
 
-							// load the html into the object
-							// (the @ symbol represses parse warnings from any badly formatted html that we are reading in)
-						//	@$pageDom->loadHTML($pageHtml);
+	// save the json data that we need
+	$gene_detailUri = $fbrow['detailUri'];
+        $gene_href = "http://www.informatics.jax.org".$gene_detailUri;
+        $gene_mgiID = substr($gene_detailUri, 8);
+	$gene_symbol = $fbrow['symbol'];
+	$gene_supTxt = ""; // keep
+	$gene_name = $fbrow['name'];
+	$gene_key = ""; // I don't think we need this anymore
+	$gene_feature_type = $fbrow['featureType'];
+	$gene_chr = $fbrow['chromosome'];
+	$gene_coords = $fbrow['location'];		
 
-							// discard white space
-						//	$pageDom->preserveWhiteSpace = false;
+	// save the json data to the gene_results array
+	$gene_results = array(
+		"mgi" => $gene_mgiID,  # MGI ID
+		"url" => $gene_href,  # link to this gene page in MGI
+		"type" => "Gene",  # hard-coded
+		"symbol" => $gene_symbol,  # gene symbol
+		"term" => "",  # must be empty
+		"supTxt" => $gene_supTxt,  # must be empty
+		"name" => $gene_name,  # gene name
+		"key" => $gene_key,  # I don’t think we need this anymore
+		"feature_type" => $gene_feature_type,  # feature type
+		"chr" => $gene_chr,  # chromosome
+		"coords" => $gene_coords  # genome coordinates
+	);
 
-							// store the dom object in a new DOMXPath object to make the parsing easier
-							// (ex: we only want some of the <table> elements, not all of them, etc.)
-						//	$pageXpath = new DOMXPath($pageDom);
+	// store the results in an array to be sent to the app as json
+	array_push($gfResultsArray, $gene_results);
+} // end of feature bucket foreach loop
 
-						//	$mgiDOMTags = $pageXpath->query("//table[@class='detailStructureTable']/tr/td[@class='detailData1']/a");
-						//        foreach ($mgiDOMTags as $mgiDOM) {
-						//               global $mgiID;
-						//               $mgi_href = $mgiDOM->getAttribute('href');
-						//               if (preg_match('/www.omim.org\/entry\/(\d+)/', $mgi_href, $matches)) { $mgiID = $matches[1]; }
-						//        } // end of foreach loop
+//------------------------------------------
 
-							// add the sub-array of results to the big resultsArray
-                		                        $disease_results = array("mgi" => $disease_mgiID, "url" => $disease_href, "type" => "Disease", "symbol" => "", "term" => $disease_term, "supTxt" => "", "name" => "", "key" => $disease_key, "feature_type" => $disease_feature_type);
-							array_push($diseaseResultsArray, $disease_results);
-						} // end of else
-					} // end of if
-					else {
-						// we found a phenotype URL, so save it
-						// also save the element symbol inside the <a> tag
-						// save the element name inside the next <td> tag
-						// and pull the element key out of the URL
-						$pheno_href = $href;
-                                        //      preg_match('/\/vocab/mp_ontology/MP:(\d+)/', $pheno_href, $pheno_matches);
-					//	preg_match('/vocab/mp_ontology/(.*)/', $pheno_href, $pheno_matches);
-					//	preg_match('/MP:(/d+)/', $pheno_href, $pheno_matches);
-						preg_match("/vocab\/mp_ontology\/MP:(\d+)/", $pheno_href, $pheno_matches);
-					//	$substr = "/disease/key/";
-                                                $pheno_key = $pheno_matches[1];
-					//	$pheno_key = "ahoy";
-					//	$pheno_substr = "/disease/key/";
-						$pheno_term = (trim($aDOM->nodeValue));
-        	                                $nextSib = $parent->nextSibling;
-                	                        $nextSib = $nextSib->nextSibling;
-              		                        $prevSib = $aDOM->previousSibling;
-						$prevSib = $prevSib->previousSibling;
-	                                        $pheno_feature_type = (trim($prevSib->nodeValue));
-						$pheno_mgiID = "MP:" . $pheno_key;
-					//	$mgiID = "ahoy";
-						// add the sub-array of results to the big resultsArray
-                                	        $pheno_results = array("mgi" => $pheno_mgiID, "url" => $pheno_href, "type" => "Phenotype", "symbol" => "", "term" => $pheno_term, "supTxt" => "", "name" => "", "key" => $pheno_key, "feature_type" => $pheno_feature_type);
-						array_push($phenoResultsArray, $pheno_results);
-					} // end of else
-				} // end of if
-				else {
-					// we found a genome feature URL that belongs to a marker
-					// make sure it is one of the following (child term of parent term 'gene'):
-					// 1. protein coding gene
-					// 2. non-coding RNA gene
-					// 3. heritable phenotypic marker
-					// 4. gene segment
-					// 5. unclassified gene
+// hit the vocab Bucket endpoint of the MGI QuickSearch to get the returned vocabulary terms
+$vburl = "http://www.informatics.jax.org/quicksearch/vocabBucket?queryType=exactPhrase&query=" . $searchTerm. "&submit=Quick%0D%0ASearch&startIndex=0&results=10";
 
-					// get the parent's preceeding sibling
-					$prevSib = $parent->previousSibling;
-					$prevSib = $prevSib->previousSibling;
-					$gene_feature_type = (trim($prevSib->nodeValue));
-				
-					if (($gene_feature_type == "protein coding gene")
-					 || ($gene_feature_type == "non-coding RNA gene")
-					 || ($gene_feature_type == "heritable phenotypic marker")
-					 || ($gene_feature_type == "gene segment")
-					 || ($gene_feature_type == "unclassified gene")) {
+// get the json results using the URL and the searchTerm
+$vbjson = file_get_contents($vburl);
 
-						// save the element symbol inside the <a> tag
-						// save the element name inside the next <td> tag
-						// and pull the element key out of the URL
-						// and pull the MGI ID from the detail page
-						$gene_href = $href;
-                                	        preg_match("/http:\/\/www.informatics.jax.org\/marker\/MGI:(\d+)/", $gene_href, $gene_matches);
-                                        	$gene_key = $gene_matches[1];
-						$gene_symbol = (trim($aDOM->nodeValue));
-        	                                $gene_supTxt = "";
-	        	                        $nextSib = $parent->nextSibling;
-        	        	                $nextSib = $nextSib->nextSibling;
-                	        	        $gene_name = (trim($nextSib->nodeValue));
-						$gene_mgiID = "MGI:" . $gene_key;
+// decode the vocab bucket json results as an associative array
+$decoded_vbjson = json_decode($vbjson, true);
 
-						// save the genomic location
-                                                $nextSib = $nextSib->nextSibling;
-                                                $nextSib = $nextSib->nextSibling;
-						$gene_chr = (trim($nextSib->nodeValue));
+// save the vocab bucket results as rows
+$vbsummaryRows = $decoded_vbjson['summaryRows'];
 
-                                                $nextSib = $nextSib->nextSibling;
-                                                $nextSib = $nextSib->nextSibling;
-						$gene_coords = (trim($nextSib->nodeValue));
-						$gene_coords = preg_replace('/\s+/', '', $gene_coords);
+// for each row of vocab bucket results...
+foreach($vbsummaryRows as $vbrow) {
+
+	// store the vocabName
+	$vocabName = $vbrow['vocabName'];
+
+	// if we found a phenotype...
+	if ($vocabName == 'Phenotype') { 
+	
+		// save the json data that we need
+        	$pheno_mgiID = $vbrow['primaryID'];
+		$pheno_detailUri = $vbrow['detailUri'];
+        	$pheno_href = "http://www.informatics.jax.org".$pheno_detailUri;		
+        	$pheno_term = $vbrow['term'];
+        	$pheno_key = "";
+        	$pheno_feature_type = $vocabName;
+
+		// save the json data to an array
+		$pheno_results = array(
+			"mgi" => $pheno_mgiID,  # MP ID
+			"url" => $pheno_href,  # link to this phenotype page in MGI
+			"type" => "Phenotype",  # hard-coded
+			"symbol" => "",  # must be empty
+			"term" => $pheno_term,  # term for this phenotype
+			"supTxt" => "",  # must be empty
+			"name" => "",  # must be empty
+			"key" => $pheno_key,  # I don’t think we need this anymore
+			"feature_type" => $pheno_feature_type  
+		);
 		
-		                                // add the sub-array of results to the big resultsArray
-	                        	        $gene_results = array("mgi" => $gene_mgiID, "url" => $gene_href, "type" => "Gene", "symbol" => $gene_symbol, "term" => "", "supTxt" => $gene_supTxt, "name" => $gene_name, "key" => $gene_key, "feature_type" => $gene_feature_type, "chr" =>
-$gene_chr, "coords" => $gene_coords);
-        		                        array_push($gfResultsArray, $gene_results);
-					} // end of if
-				} // end of else
-			} // end of if
-/*			else {
-				// we found a genome feature URL that belongs to an allele, so save it
-				// save the element symbol inside the <a> tag
-				// save the element name inside the next <td> tag
-				// and pull the element key out of the URL
-				// see if the symbol contains superscript
-				// and pull the MGI ID from the detail page
-	                        $symbolNodes = $aDOM->childNodes;
-				$count = 0;
-				foreach($symbolNodes as $node) {
-					$count++;
-					$symbol = "";
-	                                $supTxt = (trim($node->nodeValue));
-                                        $symbol = (trim($aDOM->nodeValue));
-					$symbol = str_replace($supTxt, "", $symbol);
-				} // end foreach loop
-                                preg_match('/\&key=(\d+)/', $href, $matches);
-                                $key = $matches[1];
-				$nextSib = $parent->nextSibling;
-				$nextSib = $nextSib->nextSibling;
-				$name = (trim($nextSib->nodeValue));
+		// store the results in an array to be sent to the app as json
+		array_push($phenoResultsArray, $pheno_results);
+	} // end of phenotype if
 
-				// add the sub-array of results to the big resultsArray
-				$results = array("url" => $href, "type" => "allele", "symbol" => $symbol, "term" => "", "supTxt" => $supTxt, "name" => $name, "key" => $key, "feature_type" => $feature_type);
-				array_push($gfResultsArray, $results);
-			} // end of else
-*/
-		} // end of if
-	} // end of if
-} // end of foreach loop
+	// else if we found a disease...
+	else if ($vocabName == 'Disease') {
+
+		$disease_mgiID = $vbrow['primaryID'];
+		$disease_detailUri = $vbrow['detailUri'];	
+		$disease_href = "http://www.informatics.jax.org".$disease_detailUri;
+		$disease_term = $vbrow['term'];
+		$disease_key = "";
+		$disease_feature_type = $vocabName;
+
+		$disease_results = array(
+			"mgi" => $disease_mgiID,  # DO ID
+			"url" => $disease_href,  # link to this disease page in MGI
+			"type" => "Disease",  # hard-coded
+			"symbol" => "",  # must be empty
+			"term" => $disease_term,  # term for this disease
+			"supTxt" => "",  # must be empty
+			"name" => "",  # must be empty
+			"key" => $disease_key,  # I don’t think we need this anymore
+			"feature_type" => $disease_feature_type  # should always be “Disease”
+		);
+	
+		// store the results in an array to be sent to the app as json
+                array_push($diseaseResultsArray, $disease_results);
+	} // end of disease else if
+
+} // end of vocab bucket foreach loop
 
 // add the data to the json object to return to the iphone app
 $rtnjsonobj->gf_results = $gfResultsArray;
 $rtnjsonobj->pheno_results = $phenoResultsArray;
 $rtnjsonobj->disease_results = $diseaseResultsArray;
 $rtnjsonobj->genome_build = "GRCm39";
- 
+
 // Wrap and write a JSON-formatted object with a function call, using the supplied value of parm 'callback' in the URL:
-echo $_GET['callback']. '('. json_encode($rtnjsonobj) . ')';   
+echo $_GET['callback']. '('. json_encode($rtnjsonobj) . ')';
 
 exit;
 
 ?>
-
