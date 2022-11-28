@@ -2,8 +2,7 @@
 
 // Configuration Settings
 $sendFrom = "Mobile App Feedback <donotreply@feedback.com>";
-//$sendTo = "mgi-help@jax.org"; // was jmrecla@gmail.com
-$sendTo = "joel.richardson@jax.org"; // was jmrecla@gmail.com
+$sendTo = "mgi-help@jax.org"; // was jmrecla@gmail.com
 $msgBody = "";
 $contact_name = "";
 $contact_email = "";
