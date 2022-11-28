@@ -2,7 +2,8 @@
 
 // Configuration Settings
 $sendFrom = "Mobile App Feedback <donotreply@feedback.com>";
-$sendTo = "mgi-help@jax.org"; // was jmrecla@gmail.com
+//$sendTo = "mgi-help@jax.org"; // was jmrecla@gmail.com
+$sendTo = "joel.richardson@jax.org"; // was jmrecla@gmail.com
 $msgBody = "";
 $contact_name = "";
 $contact_email = "";
@@ -59,14 +60,15 @@ $msgBody .= "Subject: " . $contact_subject . "\n";
 $msgBody .= "Message: " . "\n" . $contact_message . "\n\n";
 $msgBody .= "Rating: " . $contact_rating . "\n";
 
+if ($contact_name == "" && $contact_email == "" && $contact_message == "") {
+    $rtnjsonobj->success = "false";
+} else {
+    // Send E-Mail and Direct Browser to Confirmation Page
+    mail($sendTo, $contact_subject, $msgBody, "From: $sendFrom");
+    // Wrap and write a JSON-formatted object with a function call, using the supplied value of parm 'callback' in the URL:
+    $rtnjsonobj->success = "true";
+}
 
-// Send E-Mail and Direct Browser to Confirmation Page
-mail($sendTo, $contact_subject, $msgBody, "From: $sendFrom");
-//header("Location: $ThanksURL");
-
-
-// Wrap and write a JSON-formatted object with a function call, using the supplied value of parm 'callback' in the URL:
-$rtnjsonobj->success = "true";
 echo $_GET['callback']. '('. json_encode($rtnjsonobj) . ')';
 
 exit;
