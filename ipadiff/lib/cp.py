@@ -7,28 +7,28 @@
 #           print scfg("varA"), scfg("Xyz")
 #           print scfg.options()
 # 
-import ConfigParser
+from configparser import ConfigParser
 
 def getConfigSection(cp, sname):
     f = lambda *a : cp.get(sname, *a)
     f._configParser = cp
     f._sectionName = sname
-    f.get = f
+    f.get = lambda *a : cp.get(sname, *a)
     f.has_option = lambda *a : cp.has_option(sname, *a)
     f.options    = lambda *a : cp.options(sname, *a)
     f.items      = lambda *a : cp.items(sname, *a)
     return f
 
-setattr( ConfigParser.ConfigParser, 'getSection', getConfigSection )
+setattr( ConfigParser, 'getSection', getConfigSection )
 
 if __name__=="__main__":
     import sys
-    cp = ConfigParser.ConfigParser()
+    cp = ConfigParser()
     cp.read(sys.argv[1])
     g1 = cp.getSection('query.gene')
     g2 = cp.getSection('query.genotype')
-    print g1("query",True)
-    print g2("query",True)
+    print (g1("mgiquery"))
+    print (g2("mgiquery"))
 
 
 

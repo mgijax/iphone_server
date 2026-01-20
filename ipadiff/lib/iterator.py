@@ -25,18 +25,18 @@ def tsvIter(src, sep='\t', removeNL=True):
     if src == "-":
         fd = src = sys.stdin
     elif type(src) is types.StringType:
-	fd = open(src, 'r')
+        fd = open(src, 'r')
     else:
         fd = src
 
     for line in fd:
         flds = line.split(sep)
-	if removeNL:
-	    flds[-1] = flds[-1][:-1]
-	yield flds
+        if removeNL:
+            flds[-1] = flds[-1][:-1]
+        yield flds
 
     if not fd is src:
-	fd.close()
+        fd.close()
 
 """
 keyedIter
@@ -46,11 +46,11 @@ keyedIter
 def keyedIter(tsv,key,checkSorted=True):
     lastk = None
     for r in tsv:
-	k = r[key]
-	if lastk is not None and k < lastk:
-	    raise RuntimeError("Keys are not sorted! %s %s" % (lastk, k))
-	lastk = k
-	yield (k, r)
+        k = r[key]
+        if lastk is not None and k < lastk:
+            raise RuntimeError("Keys are not sorted! %s %s" % (lastk, k))
+        lastk = k
+        yield (k, r)
 
 """
 mergeIter
@@ -63,25 +63,25 @@ def mergeIter(src1, src2, key1=0, key2=0, all=False):
     tsv2 = keyedIter(tsvIter(src2),key2)
 
     try:
-	k1,r1 = tsv1.next()
-	k2,r2 = tsv2.next()
-	while True:
-	    if k1 < k2:
-		if all:
-		    yield (k1, r1, None)
-		k1,r1 = tsv1.next()
-	    elif k2 < k1:
-		if all:
-		    yield (k2, None, r2)
-		k2,r2 = tsv2.next()
-	    else:
-		yield (k1,r1,r2)
-		k1,r1 = tsv1.next()
-		k2,r2 = tsv2.next()
+        k1,r1 = tsv1.next()
+        k2,r2 = tsv2.next()
+        while True:
+            if k1 < k2:
+                if all:
+                    yield (k1, r1, None)
+                k1,r1 = tsv1.next()
+            elif k2 < k1:
+                if all:
+                    yield (k2, None, r2)
+                k2,r2 = tsv2.next()
+            else:
+                yield (k1,r1,r2)
+                k1,r1 = tsv1.next()
+                k2,r2 = tsv2.next()
     except StopIteration:
-	if all:
-	    for k,r in tsv1:
-		yield (k, r, None)
-	    for k,r in tsv2:
-	        yield (k, None, r)
+        if all:
+            for k,r in tsv1:
+                yield (k, r, None)
+            for k,r in tsv2:
+                yield (k, None, r)
 
