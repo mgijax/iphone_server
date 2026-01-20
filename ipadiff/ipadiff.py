@@ -258,10 +258,7 @@ class IpaDiff:
     '''
     def do1pair(self, tp, pf, cf, df=None):
         # create a snapshot object of the right type
-        try:
-            self.ss = snapshot.Snapshot(self.cp, tp)
-        except Exception as e:
-            self.op.error(e)
+        self.ss = snapshot.Snapshot(self.cp, tp)
 
         ofd = self.openOutput(df)
 
@@ -276,7 +273,7 @@ class IpaDiff:
             diter = itertools.islice(diter, self.opts.limit)
         # loop over the diffs and write them out
         for d in diter:
-            ofd.write( self.cp.get( 'RSS','itemTemplate',True) % d )
+            ofd.write( self.cp.get( 'RSS','itemTemplate',raw=True) % d )
             ofd.write('\n')
 
 
@@ -308,7 +305,7 @@ class IpaDiff:
     def go(self):
         for fp in self.opts.filePairs:
             self.do1pair(fp['type'], fp['pfile'], fp['cfile'], fp['dfile'])
-        for df in self.outputs.keys():
+        for df in list(self.outputs.keys()):
             self.closeOutput(df)
 
 #-------------------------------------------

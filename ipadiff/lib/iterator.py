@@ -1,6 +1,5 @@
 import os
 import sys
-import types
 
 """
 """
@@ -24,7 +23,7 @@ Yields:
 def tsvIter(src, sep='\t', removeNL=True):
     if src == "-":
         fd = src = sys.stdin
-    elif type(src) is types.StringType:
+    elif type(src) is str:
         fd = open(src, 'r')
     else:
         fd = src
@@ -63,21 +62,21 @@ def mergeIter(src1, src2, key1=0, key2=0, all=False):
     tsv2 = keyedIter(tsvIter(src2),key2)
 
     try:
-        k1,r1 = tsv1.next()
-        k2,r2 = tsv2.next()
+        k1,r1 = next(tsv1)
+        k2,r2 = next(tsv2)
         while True:
             if k1 < k2:
                 if all:
                     yield (k1, r1, None)
-                k1,r1 = tsv1.next()
+                k1,r1 = next(tsv1)
             elif k2 < k1:
                 if all:
                     yield (k2, None, r2)
-                k2,r2 = tsv2.next()
+                k2,r2 = next(tsv2)
             else:
                 yield (k1,r1,r2)
-                k1,r1 = tsv1.next()
-                k2,r2 = tsv2.next()
+                k1,r1 = next(tsv1)
+                k2,r2 = next(tsv2)
     except StopIteration:
         if all:
             for k,r in tsv1:

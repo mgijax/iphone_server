@@ -12,22 +12,23 @@ except:
 
 class Snapshot:
     def __init__(self, cp, snaptype):
-        self.cp = cp.getSection('snapshot.'+snaptype)
+        self.sec = 'snapshot.'+snaptype
+        self.cp = cp
         self.labeler = Labeler(cp)
         self.cmprs = []
-        for col,cmpn in json.loads(self.cp("comparators")):
+        for col,cmpn in json.loads(self.cp.get(self.sec, "comparators")):
             cmpsn = "comparator.%s"%cmpn
-            self.cmprs.append( Comparator(col-1, cp.getSection(cmpsn), self.labeler) )
+            self.cmprs.append( Comparator(col-1, cp, cmpsn, self.labeler) )
 
-        self.pubDate = time.strftime(self.cp('dateFormat'))
-        self.typ = self.cp('type')
-        self.stype = self.cp('stype')
-        self.sformat = self.cp('sformat',True)
+        self.pubDate = time.strftime(self.cp.get(self.sec, 'dateFormat', raw=True))
+        self.typ = self.cp.get(self.sec,'type')
+        self.stype = self.cp.get(self.sec,'stype')
+        self.sformat = self.cp.get(self.sec,'sformat',raw=True)
 
-        def convertZeros(self, r):
-            for i in range(len(r)):
-                if r[i] == '0':
-                    r[i] = ''
+    def convertZeros(self, r):
+        for i in range(len(r)):
+            if r[i] == '0':
+                r[i] = ''
         return r
 
     # Compares two files, f1 and f2, and reports any differences

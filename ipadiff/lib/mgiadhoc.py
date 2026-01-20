@@ -6,7 +6,6 @@
 #
 import os
 import sys
-import types
 
 import psycopg2
 import psycopg2.extras

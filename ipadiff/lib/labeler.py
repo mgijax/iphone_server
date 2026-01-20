@@ -1,7 +1,6 @@
 
 import json
 import urllib
-import types
 import sys
 import logging
 from . import mgiadhoc as db
@@ -17,10 +16,10 @@ class Labeler:
 
     def get(self, typ, oid, format=True):
         k = (typ,oid,format)
-        if self.cache.has_key(k):
+        if k in self.cache:
             return self.cache[k]
         sec = 'query.'+typ
-        mgiq = self.cp.get(sec,'mgiquery', False, {'id':oid})
+        mgiq = self.cp.get(sec,'mgiquery', vars={'id':oid})
         r = db.sql(mgiq, None, connection=self.cxn)
 
         if len(r) == 0:
@@ -29,9 +28,9 @@ class Labeler:
             val = r
         elif format is False:
             val = r[0]
-        elif type(format) is types.StringType:
+        elif type(format) is str:
             val = format % r[0]
-        elif type(format) is types.FunctionType:
+        elif callable(format):
             val = format(r[0])
         elif self.cp.has_option(sec,'format'):
             val = self.cp.get(sec,'format',False,r[0])
